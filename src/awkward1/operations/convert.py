@@ -2691,6 +2691,23 @@ def from_parquet(
             return out
 
 
+def from_rados(uri):
+    pyarrow = _import_pyarrow("ak.from_parquet")
+    import pyarrow.dataset as ds
+
+    dataset = ds.dataset( 
+        source= "rados:///etc/ceph/ceph.conf?cluster=ceph&pool=test-pool&ids={}".format(urllib.parse.quote(str([uri]), safe='')),
+        schema= pa.schema([
+            pa.field('a', pa.int8()),
+            pa.field('b', pa.float64())         # need to figure out how to prevent supplying schema  
+        ])
+    )
+
+    table = dataset.to_table()
+    arrays = from_arrow(table)
+    return arrays
+
+
 def _arrayset_key(
     form_key,
     attribute,
